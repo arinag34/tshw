@@ -14,7 +14,7 @@ class Direction {
         return this._name;
     }
 
-    set setName(name: string){
+    set setName(name: string) {
         this._name = name;
     }
 
@@ -46,7 +46,7 @@ class Level {
         return this._program;
     }
 
-    addGroup(group: any):void {
+    addGroup(group: any): void {
         this.groups.push(group);
     }
 }
@@ -101,7 +101,7 @@ class Student {
         return new Date().getFullYear() - this.birthYear;
     }
 
-    setGrade(subject: string, grade: number) {
+    setGrade(subject: string, grade: number): void {
         this.grades[subject] = grade;
     }
 
