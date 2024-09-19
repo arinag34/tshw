@@ -76,6 +76,18 @@ class Level {
     _name: string;
     _description: string;
 
+    get groups(): Group[]{
+        return this._groups;
+    }
+
+    get name(): string{
+        return this._name;
+    }
+
+    get description(): string{
+        return this._description;
+    }
+
     addGroup(group: Group): void{
         this._groups.push(group);
     }
@@ -97,12 +109,32 @@ class Group {
     _area: Area;
     _status: string;
     _students: Student[] = []; // Modify the array so that it has a valid toSorted method*
-    directionName: string;
-    levelName: string;
+    _directionName: string;
+    _levelName: string;
+
+    get area(): Area{
+        return this._area;
+    }
+
+    get status(): string{
+        return this._status;
+    }
+
+    get students(): Student[]{
+        return this._students;
+    }
+
+    get directionName(): string{
+        return this._directionName;
+    }
+
+    get levelName(): string{
+        return this._levelName;
+    }
 
     constructor(directionName: string, levelName: string) {
-        this.directionName = directionName;
-        this.levelName = levelName;
+        this._directionName = directionName;
+        this._levelName = levelName;
     }
 
     addStudent(student: Student): void{
