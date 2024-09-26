@@ -1,127 +1,74 @@
-class School {
-    directions: any = [];
+abstract class Figure{
+    public abstract readonly COLOR: string;
+    public abstract readonly NAME: string;
 
-    addDirection(direction: any): void {
-        this.directions.push(direction);
+    public abstract calculateArea(): number;
+}
+
+class Circle extends Figure{
+    constructor(public radius: number,
+                public readonly COLOR: string,
+                public readonly NAME: string) {
+        super();
+    }
+
+    public override calculateArea(): number{
+            return Math.PI * Math.pow(this.radius, 2);
     }
 }
 
-class Direction {
-    levels: any = [];
-    _name: string;
-
-    get getName(): string {
-        return this._name;
+class Rectangle extends Figure{
+    constructor(public height: number,
+                public width: number,
+                public readonly COLOR: string,
+                public readonly NAME: string){
+        super();
     }
 
-    set setName(name: string) {
-        this._name = name;
+    public override calculateArea(): number {
+        return this.height * this.width;
     }
 
-    constructor(name: string) {
-        this._name = name;
-        this.levels = [];
-    }
-
-    addLevel(level: any): void {
-        this.levels.push(level);
+    public print(): void{
+        console.log(`Formula: height * width = ${this.height} * ${this.width} = ${this.calculateArea()}`);
     }
 }
 
-class Level {
-    groups: any = [];
-    _name: string;
-    _program: string;
-
-    constructor(name: string, program: string) {
-        this._name = name;
-        this._program = program;
-    }
-
-    get name(): string {
-        return this._name;
-    }
-
-    get program(): string {
-        return this._program;
-    }
-
-    addGroup(group: any): void {
-        this.groups.push(group);
+class Square extends Rectangle{
+    constructor(side: number,
+                public readonly COLOR: string,
+                public readonly NAME: string){
+        super(side, side, COLOR, NAME);
     }
 }
 
-class Group {
-    _students: any = [];
-    directionName: string;
-    levelName: string;
-
-    get students(): any {
-        return this._students;
+class Triangle extends Figure{
+    constructor(public base: number,
+                public perpendicular_height: number,
+                public readonly COLOR: string,
+                public readonly NAME: string) {
+        super();
     }
 
-    constructor(directionName: string, levelName: string) {
-        this.directionName = directionName;
-        this.levelName = levelName;
-    }
-
-    addStudent(student:any): void {
-        this._students.push(student);
-    }
-
-    showPerformance(): any {
-        return this.students.toSorted(
-            (a, b) => b.getPerformanceRating() - a.getPerformanceRating()
-        );
+    public override calculateArea(): number {
+        return (this.base * this.perpendicular_height) / 2;
     }
 }
 
-class Student {
-    grades: any = {};
-    attendance: any = [];
-    firstName: string;
-    lastName: string;
-    birthYear: number;
+let circle:Circle = new Circle(12, "Red", "Circle");
+console.log(circle.calculateArea());
+//circle.COLOR = "Black"; (error)
 
-    constructor(firstName: string, lastName: string, birthYear: number) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.birthYear = birthYear;
-    }
+let rectangle:Rectangle = new Rectangle(12, 10, "Green", "Rectangle");
+rectangle.print();
 
-    get fullName(): string {
-        return `${this.lastName} ${this.firstName}`;
-    }
+let square:Square = new Square(12, "Yellow", "Square");
+square.print();
+console.log(`${square.COLOR} and ${square.NAME}`);
 
-    set fullName(value: string) {
-        [this.lastName, this.firstName] = value.split(" ");
-    }
+let rectSquare:Square = new Rectangle(12, 12, "Orange", "RectSquare");
+rectSquare.print();
+console.log(`${rectSquare.COLOR} and ${rectSquare.NAME}`);
 
-    get age(): number {
-        return new Date().getFullYear() - this.birthYear;
-    }
-
-    setGrade(subject: string, grade: number): void {
-        this.grades[subject] = grade;
-    }
-
-    markAttendance(present: boolean): void {
-        this.attendance.push(present);
-    }
-
-    getPerformanceRating(): number {
-        const gradeValues: any = Object.values(this.grades);
-
-        if (gradeValues.length === 0) return 0;
-
-        const averageGrade: number =
-            gradeValues.reduce((sum: number, grade: number) => sum + grade, 0) / gradeValues.length;
-
-        const attendancePercentage: number =
-            (this.attendance.filter((present: boolean) => present).length /
-                this.attendance.length) *
-            100;
-
-        return (averageGrade + attendancePercentage) / 2;
-    }
-}
+let triangle:Triangle = new Triangle(12, 19, "Pink", "Triangle");
+console.log(triangle.calculateArea());
