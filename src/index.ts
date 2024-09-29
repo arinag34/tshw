@@ -78,6 +78,7 @@ let objCheck:ICriteriaCheck = {
     dog: 11,
     hello: 29,
     city: "Dnipro",
+    numbers: "1234",
     cars: 390
 }
 
