@@ -8,7 +8,6 @@ let obj1:IUnionSignature = {
     numberKey : 12
 };
 
-
 //Створіть інтерфейс, у якому типи значень у сигнатурі індексу є функціями. Ключами можуть бути рядки, а значеннями — функції, які приймають будь-які аргументи.
 interface IFunctionSignature {
     [key: string]: (...args: any[]) => any;
@@ -19,7 +18,6 @@ let obj2:IFunctionSignature = {
     numberFunc: (a: number, b: number) => a + b,
     stringFunc: (name: string) => "Hello" + name
 }
-
 
 //Опишіть інтерфейс, який використовує сигнатуру індексу для опису об'єкта, подібного до масиву. Ключі повинні бути числами, а значення - певного типу.
 interface IArraySignature{
@@ -32,7 +30,6 @@ let obj3:IArraySignature = {
     2 : "hi",
     3 : "space"
 }
-
 
 //Створіть інтерфейс з певними властивостями та індексною сигнатурою. Наприклад, ви можете мати властивості типу name: string та індексну сигнатуру для додаткових динамічних властивостей.
 interface IPropertiesSignature{
@@ -50,7 +47,6 @@ let person:IPropertiesSignature = {
 };
 person["hasCat"] = true;
 
-
 //Створіть два інтерфейси, один з індексною сигнатурою, а інший розширює перший, додаючи специфічні властивості.
 interface IBase{
     [key: string]: string | number;
@@ -66,7 +62,6 @@ let personSpec:IDesc = {
     age : 19,
     cat: "has",
 };
-
 
 //Напишіть функцію, яка отримує об'єкт з індексною сигнатурою і перевіряє, чи відповідають значення певних ключів певним критеріям (наприклад, чи всі значення є числами).
 interface ICriteriaCheck{
