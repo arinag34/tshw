@@ -1,87 +1,95 @@
-//Визначте інтерфейс, який використовує сигнатуру індексу з типами об'єднання. Наприклад, тип значення для кожного ключа може бути число | рядок.
-interface IUnionSignature{
-    [key: string]: string | number;
+//Вам потрібно створити тип DeepReadonly який буде робити доступними тільки для читання навіть властивості вкладених обʼєктів.
+interface IDeepReadonly {
+    field: string;
+    obj: {name: string, age: number}
 }
 
-let obj1:IUnionSignature = {
-    stringKey : "hello",
-    numberKey : 12
+type DeepReadonly<T> = {
+    +readonly[K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K];
+}
+
+const WithoutDeepReadonly: IDeepReadonly = {
+    field: "Arina",
+    obj: {name: "Christina",
+        age: 19}};
+
+const addDeepReadonly: DeepReadonly<IDeepReadonly> = {
+    field: "Arina",
+    obj: {name: "Christina",
+        age: 19}};
+
+
+
+//Вам потрібно створити тип DeepRequireReadonly який буде робити доступними тільки для читання навіть властивості вкладених обʼєктів та ще й робити їх обовʼязковими.
+interface IDeepRequiredReadonly {
+    field?: string;
+    obj: {name: string, age?: number}
+}
+
+type DeepRequiredReadonly<T> = {
+    +readonly[K in keyof T]-?: T[K] extends object ? DeepRequiredReadonly<T[K]> : T[K];
+}
+
+const WithoutDeepRequiredReadonly: IDeepRequiredReadonly = {
+    obj: {name: "Christina"}};
+
+const addDeepRequiredReadonly: DeepRequiredReadonly<IDeepRequiredReadonly> = {
+    field: "Arina",
+    obj: {name: "Christina",
+        age: 19}};
+
+
+
+//Вам потрібно створити тип UpperCaseKeys, який буде приводити всі ключі до верхнього регістру.
+interface IUpperCaseKeys {
+    field: string;
+    obj: {name: string, age: number}
+}
+
+type UpperCaseKeys<T> = {
+    [K in keyof T as Uppercase<K>] : T[K];
+}
+
+const lowercase: IUpperCaseKeys = {
+    field: "Arina",
+    obj: {name: "Name", age: 29}
+}
+
+const uppercase: UpperCaseKeys<IUpperCaseKeys> = {
+    FIELD: "Arina",
+    OBJ: {name: "Name", age: 29}
+}
+
+
+//Створіть тип ObjectToPropertyDescriptor, який перетворює звичайний обʼєкт на обʼєкт де кожне value є дескриптором.
+interface IObjectToPropertyDescriptor {
+    field: string;
+}
+
+type ObjectToPropertyDescriptor<T> = {
+    [K in keyof T]: {
+        value: T[K],
+        writable: boolean;
+        configurable: boolean;
+        enumerable: boolean;
+        get: () => T[K];
+        set: (value: T[K]) => void
+    };
 };
 
-
-//Створіть інтерфейс, у якому типи значень у сигнатурі індексу є функціями. Ключами можуть бути рядки, а значеннями — функції, які приймають будь-які аргументи.
-interface IFunctionSignature {
-    [key: string]: (...args: any[]) => any;
+const obj: IObjectToPropertyDescriptor = {
+    field: "Arina",
 }
 
-let obj2:IFunctionSignature = {
-    voidFunc: () => console.log("Hello world"),
-    numberFunc: (a: number, b: number) => a + b,
-    stringFunc: (name: string) => "Hello" + name
+const objDescriptor: ObjectToPropertyDescriptor<IObjectToPropertyDescriptor> = {
+    field : {
+        value: "Arina",
+        writable: true,
+        configurable: true,
+        enumerable: true,
+        get: () => "Arina",
+        set: (name: string) => {
+            name = "Arina";
+        }
+    }
 }
-
-//Опишіть інтерфейс, який використовує сигнатуру індексу для опису об'єкта, подібного до масиву. Ключі повинні бути числами, а значення - певного типу.
-interface IArraySignature{
-    [key: number]: string;
-}
-
-let obj3:IArraySignature = {
-    0 : "hello",
-    1 : "world",
-    2 : "hi",
-    3 : "space"
-}
-
-//Створіть інтерфейс з певними властивостями та індексною сигнатурою. Наприклад, ви можете мати властивості типу name: string та індексну сигнатуру для додаткових динамічних властивостей.
-interface IPropertiesSignature{
-    [key: string]: string | number | boolean;
-
-    name: string;
-    age: number;
-    isAlive: boolean;
-}
-
-let person:IPropertiesSignature = {
-    name: "Arina",
-    age: 20,
-    isAlive: true
-};
-person["hasCat"] = true;
-
-//Створіть два інтерфейси, один з індексною сигнатурою, а інший розширює перший, додаючи специфічні властивості.
-interface IBase{
-    [key: string]: string | number;
-    name: string;
-}
-
-interface IDesc extends IBase{
-    cat: string;
-}
-
-let personSpec:IDesc = {
-    name: "Arina",
-    age : 19,
-    cat: "has",
-};
-
-//Напишіть функцію, яка отримує об'єкт з індексною сигнатурою і перевіряє, чи відповідають значення певних ключів певним критеріям (наприклад, чи всі значення є числами).
-interface ICriteriaCheck{
-    [key: string] : string | number;
-}
-
-let objCheck:ICriteriaCheck = {
-    arina: "hi",
-    dog: 11,
-    hello: 29,
-    city: "Dnipro",
-    numbers: "1234",
-    cars: 390
-}
-
-const checkingFunction = (obj: ICriteriaCheck, keysToCheck: string[]): boolean => {
-    return keysToCheck.every(key => typeof obj[key] === 'number');
-}
-
-let keysToCheck: string [] = ["hello", "dog"];
-
-console.log(`Is every key in the list a number value? ${checkingFunction(objCheck, keysToCheck)}`);
