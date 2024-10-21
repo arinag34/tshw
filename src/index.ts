@@ -8,6 +8,7 @@ let obj1:IUnionSignature = {
     numberKey : 12
 };
 
+
 //Створіть інтерфейс, у якому типи значень у сигнатурі індексу є функціями. Ключами можуть бути рядки, а значеннями — функції, які приймають будь-які аргументи.
 interface IFunctionSignature {
     [key: string]: (...args: any[]) => any;
