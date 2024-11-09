@@ -1,95 +1,17 @@
-//Вам потрібно створити тип DeepReadonly який буде робити доступними тільки для читання навіть властивості вкладених обʼєктів.
-interface IDeepReadonly {
-    field: string;
-    obj: {name: string, age: number}
+//1) Вам потрібно створити умовний тип, що служить для встановлення типу, що повертається з функції. Як параметр типу повинен обов'язково виступати функціональний тип.
+type FunctionReturnType<T> = T extends (...args: any[]) => infer U ? U : never;
+
+function str(): string{
+    return "Hello"
 }
 
-type DeepReadonly<T> = {
-    +readonly[K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K];
+let a: FunctionReturnType<typeof str>
+
+//2) Вам потрібно створити умовний тип, який приймає функціональний тип з одним параметром (або задовільним) та повертає кортеж, де перше значення - це тип, що функція повертає, а другий - тип її параметру.
+type TrupleType<T> = T extends (param: infer U) => infer R ? [R, U] : never;
+
+function numstr(a:number): string{
+    return "Hi"
 }
 
-const WithoutDeepReadonly: IDeepReadonly = {
-    field: "Arina",
-    obj: {name: "Christina",
-        age: 19}};
-
-const addDeepReadonly: DeepReadonly<IDeepReadonly> = {
-    field: "Arina",
-    obj: {name: "Christina",
-        age: 19}};
-
-
-
-//Вам потрібно створити тип DeepRequireReadonly який буде робити доступними тільки для читання навіть властивості вкладених обʼєктів та ще й робити їх обовʼязковими.
-interface IDeepRequiredReadonly {
-    field?: string;
-    obj: {name: string, age?: number}
-}
-
-type DeepRequiredReadonly<T> = {
-    +readonly[K in keyof T]-?: T[K] extends object ? DeepRequiredReadonly<T[K]> : T[K];
-}
-
-const WithoutDeepRequiredReadonly: IDeepRequiredReadonly = {
-    obj: {name: "Christina"}};
-
-const addDeepRequiredReadonly: DeepRequiredReadonly<IDeepRequiredReadonly> = {
-    field: "Arina",
-    obj: {name: "Christina",
-        age: 19}};
-
-
-
-//Вам потрібно створити тип UpperCaseKeys, який буде приводити всі ключі до верхнього регістру.
-interface IUpperCaseKeys {
-    field: string;
-    obj: {name: string, age: number}
-}
-
-type UpperCaseKeys<T> = {
-    [K in keyof T as Uppercase<K>] : T[K];
-}
-
-const lowercase: IUpperCaseKeys = {
-    field: "Arina",
-    obj: {name: "Name", age: 29}
-}
-
-const uppercase: UpperCaseKeys<IUpperCaseKeys> = {
-    FIELD: "Arina",
-    OBJ: {name: "Name", age: 29}
-}
-
-
-//Створіть тип ObjectToPropertyDescriptor, який перетворює звичайний обʼєкт на обʼєкт де кожне value є дескриптором.
-interface IObjectToPropertyDescriptor {
-    field: string;
-}
-
-type ObjectToPropertyDescriptor<T> = {
-    [K in keyof T]: {
-        value: T[K],
-        writable: boolean;
-        configurable: boolean;
-        enumerable: boolean;
-        get: () => T[K];
-        set: (value: T[K]) => void
-    };
-};
-
-const obj: IObjectToPropertyDescriptor = {
-    field: "Arina",
-}
-
-const objDescriptor: ObjectToPropertyDescriptor<IObjectToPropertyDescriptor> = {
-    field : {
-        value: "Arina",
-        writable: true,
-        configurable: true,
-        enumerable: true,
-        get: () => "Arina",
-        set: (name: string) => {
-            name = "Arina";
-        }
-    }
-}
+let b: TrupleType<typeof numstr>
