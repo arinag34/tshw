@@ -1,9 +1,3 @@
-abstract class FilteringItems{
-    abstract searchItems(query: string): TodoItem[];
-    abstract sortByStatus(): TodoItem[];
-    abstract sortByCreationTime(): TodoItem[];
-}
-
 class TodoItem {
     private static idCounter = 1;
     public id: number;
@@ -42,8 +36,8 @@ class TodoItem {
     }
 }
 
-class TodoList extends FilteringItems{
-    private items: TodoItem[] = [];
+class TodoList{
+    protected items: TodoItem[] = [];
 
     addItem(title: string, content: string, requiresConfirmation = false): TodoItem {
         const newItem = new TodoItem(title, content, requiresConfirmation);
@@ -78,10 +72,22 @@ class TodoList extends FilteringItems{
         return this.items.filter(item => !item.isCompleted).length;
     }
 
-    searchItems(query: string): TodoItem[] {
-        return this.items.filter(item =>
-            item.title.includes(query) || item.content.includes(query)
-        );
+    sortByStatus(): TodoItem[] {
+        return this.items.sort((a, b) => Number(a.isCompleted) - Number(b.isCompleted));
+    }
+
+    sortByCreationTime(): TodoItem[] {
+        return this.items.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    }
+}
+
+class SearchableTodoList extends TodoList {
+    searchByTitle(query: string): TodoItem[] {
+        return this.items.filter(item => item.title.includes(query));
+    }
+
+    searchByContent(query: string): TodoItem[] {
+        return this.items.filter(item => item.content.includes(query));
     }
 
     sortByStatus(): TodoItem[] {
@@ -93,7 +99,7 @@ class TodoList extends FilteringItems{
     }
 }
 
-const todoList = new TodoList();
+const todoList = new SearchableTodoList();
 todoList.addItem("Зробити завдання", "Розробити додаток TODO List", true);
 todoList.addItem("Сходити в магазин", "Купити молоко, цукор, хліб");
 todoList.addItem("Прочитати книгу", "Прочитати два розділи Хіба ревуть воли як ясла повні");
@@ -119,7 +125,9 @@ console.log("Item after editing: ", todoList.getItemById(2));
 
 console.log("Incomplete items:", todoList.getIncompleteCount());
 
-console.log("Search results:", todoList.searchItems("магазин"));
+console.log("Search results by title:", todoList.searchByTitle("магазин"));
+
+console.log("Search results by content:", todoList.searchByContent("воли"));
 
 console.log("Sorted by status:", todoList.sortByStatus());
 
