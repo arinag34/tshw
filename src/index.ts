@@ -71,14 +71,6 @@ class TodoList{
     getIncompleteCount(): number {
         return this.items.filter(item => !item.isCompleted).length;
     }
-
-    sortByStatus(): TodoItem[] {
-        return this.items.sort((a, b) => Number(a.isCompleted) - Number(b.isCompleted));
-    }
-
-    sortByCreationTime(): TodoItem[] {
-        return this.items.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-    }
 }
 
 class SearchableTodoList extends TodoList {
