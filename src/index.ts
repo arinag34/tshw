@@ -1,128 +1,171 @@
-class TodoItem {
-    private static idCounter = 1;
-    public id: number;
-    public title: string;
-    public content: string;
-    public createdAt: Date;
-    public updatedAt: Date;
-    public isCompleted: boolean;
-    public requiresConfirmation: boolean;
+enum GridFilterTypeEnum {
+    Match = "match",
+    Range = "range",
+    Values = "values",
+}
 
-    constructor(title: string, content: string, requiresConfirmation = false) {
-        if (!title || !content) {
-            throw new Error("Title and content cannot be empty.");
+type GridFilterValue<T> = {
+    type: GridFilterTypeEnum.Match;
+    filter: Extract<T, string | number>;
+};
+
+type GridFilterRange<T> = {
+    type: GridFilterTypeEnum.Range;
+    filter: Extract<T, number>;
+    filterTo: Extract<T, number>;
+};
+
+type GridFilterSetValues<T> = {
+    type: GridFilterTypeEnum.Values;
+    values: T[];
+};
+
+type GridFilter<T> = GridFilterValue<T> | GridFilterRange<T> | GridFilterSetValues<T>;
+
+interface FilterableList<T> {
+    applySearchValue(filter: GridFilterValue<string>): void;
+    applyFiltersValue(filters: Partial<Record<keyof T, GridFilter<any>>>): void;
+    searchByName(name: string): T[];
+}
+
+interface Movie {
+    title: string;
+    year: number;
+    rating: number;
+    awards: string[];
+}
+
+class MovieList implements FilterableList<Movie> {
+    private readonly movies: Movie[] = [];
+    private filters: Partial<Record<keyof Movie, GridFilter<any>>> = {};
+    private searchFilter: GridFilterValue<string> | null = null;
+
+    constructor(movies: Movie[]) {
+        this.movies = movies;
+    }
+
+    applySearchValue(filter: GridFilterValue<string>): void {
+        if (filter.type !== GridFilterTypeEnum.Match) {
+            throw new Error("Search filter must be of type Match.");
         }
-        this.id = TodoItem.idCounter++;
-        this.title = title;
-        this.content = content;
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
-        this.isCompleted = false;
-        this.requiresConfirmation = requiresConfirmation;
+        this.searchFilter = filter;
     }
 
-    update(content: string): void {
-        if (this.requiresConfirmation) {
-            const confirmation = confirm("Editing cannot be reversed. Are you sure about editing?");
-            if (!confirmation) return;
+    applyFiltersValue(filters: Partial<Record<keyof Movie, GridFilter<any>>>): void {
+        this.filters = filters;
+    }
+
+    private filterMovies(): Movie[] {
+        let result = this.movies;
+
+        if (this.searchFilter) {
+            result = result.filter((movie) => movie.title === this.searchFilter!.filter);
         }
-        this.content = content;
-        this.updatedAt = new Date();
-    }
 
-    markAsCompleted(): void {
-        this.isCompleted = true;
-        this.updatedAt = new Date();
-    }
-}
+        for (const key in this.filters) {
+            const filter = this.filters[key as keyof Movie];
+            if (!filter) continue;
 
-class TodoList{
-    protected items: TodoItem[] = [];
+            result = result.filter((movie) => {
+                const value = movie[key as keyof Movie];
 
-    addItem(title: string, content: string, requiresConfirmation = false): TodoItem {
-        const newItem = new TodoItem(title, content, requiresConfirmation);
-        this.items.push(newItem);
-        return newItem;
-    }
-
-    removeItem(id: number): void {
-        this.items = this.items.filter(item => item.id !== id);
-    }
-
-    editItem(id: number, newContent: string): void {
-        const item = this.getItemById(id);
-        if (item) {
-            item.update(newContent);
+                if (filter.type === GridFilterTypeEnum.Match) {
+                    return value === filter.filter;
+                } else if (filter.type === GridFilterTypeEnum.Range) {
+                    return (
+                        typeof value === "number" &&
+                        value >= filter.filter &&
+                        value <= (filter as GridFilterRange<number>).filterTo
+                    );
+                } else if (filter.type === GridFilterTypeEnum.Values) {
+                    if (Array.isArray(value)) {
+                        return filter.values.some((val) => value.includes(val));
+                    }
+                    return (filter.values as any[]).includes(value);
+                }
+                return true;
+            });
         }
+
+        return result;
     }
 
-    getItemById(id: number): TodoItem | undefined {
-        return this.items.find(item => item.id === id);
+    searchByName(name: string): Movie[] {
+        this.applySearchValue({ type: GridFilterTypeEnum.Match, filter: name });
+        return this.filterMovies();
     }
 
-    getAllItems(): TodoItem[] {
-        return this.items;
+    getMovieByYear(year: number): Movie[] {
+        this.applyFiltersValue({
+            year: { type: GridFilterTypeEnum.Match, filter: year },
+        });
+        return this.filterMovies();
     }
 
-    getTotalCount(): number {
-        return this.items.length;
+    getMovieByRating(rating: number): Movie[] {
+        this.applyFiltersValue({
+            rating: { type: GridFilterTypeEnum.Match, filter: rating },
+        });
+        return this.filterMovies();
     }
 
-    getIncompleteCount(): number {
-        return this.items.filter(item => !item.isCompleted).length;
-    }
-}
-
-class SearchableTodoList extends TodoList {
-    searchByTitle(query: string): TodoItem[] {
-        return this.items.filter(item => item.title.includes(query));
-    }
-
-    searchByContent(query: string): TodoItem[] {
-        return this.items.filter(item => item.content.includes(query));
-    }
-
-    sortByStatus(): TodoItem[] {
-        return this.items.sort((a, b) => Number(a.isCompleted) - Number(b.isCompleted));
-    }
-
-    sortByCreationTime(): TodoItem[] {
-        return this.items.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    getMoviesWithAwards(awards: string[]): Movie[] {
+        this.applyFiltersValue({
+            awards: { type: GridFilterTypeEnum.Values, values: awards },
+        });
+        return this.filterMovies();
     }
 }
 
-const todoList = new SearchableTodoList();
-todoList.addItem("Зробити завдання", "Розробити додаток TODO List", true);
-todoList.addItem("Сходити в магазин", "Купити молоко, цукор, хліб");
-todoList.addItem("Прочитати книгу", "Прочитати два розділи Хіба ревуть воли як ясла повні");
-
-const item = todoList.getItemById(1);
-if (item) {
-    item.markAsCompleted();
+interface Category {
+    name: string;
+    movies: Movie[];
 }
 
-console.log("Total items:", todoList.getTotalCount());
+class CategoryList implements FilterableList<Category> {
+    private categories: Category[] = [];
+    private searchFilter: GridFilterValue<string> | null = null;
 
-console.log("All:", todoList.getAllItems());
+    constructor(categories: Category[]) {
+        this.categories = categories;
+    }
 
-todoList.removeItem(1);
+    applySearchValue(filter: GridFilterValue<string>): void {
+        if (filter.type !== GridFilterTypeEnum.Match) {
+            throw new Error("Search filter must be of type Match.");
+        }
+        this.searchFilter = filter;
+    }
 
-console.log("Total items after removing:", todoList.getTotalCount());
+    applyFiltersValue(): void {
+        throw new Error("Category list does not support advanced filtering.");
+    }
 
-console.log("All after removing:", todoList.getAllItems());
+    searchByName(name: string): Category[] {
+        if (!this.searchFilter) {
+            this.applySearchValue({ type: GridFilterTypeEnum.Match, filter: name });
+        }
+        return this.categories.filter((category) => category.name === this.searchFilter!.filter);
+    }
+}
 
-todoList.editItem(2, "ITEM AFTER EDITING");
+const movies: Movie[] = [
+    { title: "Mean Girls", year: 2010, rating: 8.8, awards: ["Oscar"] },
+    { title: "Fight Club", year: 2014, rating: 9.6, awards: ["Oscar", "BAFTA"] },
+    { title: "Dunkirk", year: 2017, rating: 7.9, awards: [] },
+];
+const movieList = new MovieList(movies);
 
-console.log("Item after editing: ", todoList.getItemById(2));
+const categories: Category[] = [
+    {name: "Drama", movies: movies},
+]
+const categoryList = new CategoryList(categories);
 
-console.log("Incomplete items:", todoList.getIncompleteCount());
+console.log(movieList.getMovieByYear(2010));
 
-console.log("Search results by title:", todoList.searchByTitle("магазин"));
+console.log(movieList.getMovieByRating(7.9));
 
-console.log("Search results by content:", todoList.searchByContent("воли"));
+console.log(movieList.getMoviesWithAwards(["BAFTA"]));
 
-console.log("Sorted by status:", todoList.sortByStatus());
-
-console.log("Sorted by creation time:", todoList.sortByCreationTime());
-
+console.log(JSON.stringify(categoryList.searchByName("Drama"), null, 2));
 
